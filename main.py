@@ -1,36 +1,38 @@
 import requests
+from requests_oauthlib import OAuth1
 import secrets
+import json
 
 twitterUrl = "https://api.twitter.com/1.1/search/tweets.json"
-twitterHeaders = {
-    'Authorization': "OAuth oauth_consumer_key=\"" + secrets.oauth_consumer_key + "\",oauth_token=\"" + secrets.oauth_token + "\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1566421117\",oauth_nonce=\"hybzh17hHd7\",oauth_version=\"1.0\",oauth_signature=\"" + secrets.oauth_signature + "\"",
-    'User-Agent': "PostmanRuntime/7.15.2",
-    'Accept': "*/*",
-    'Cache-Control': "no-cache",
-    'Host': "api.twitter.com",
-    'Cookie': "personalization_id=\"v1_LSWWaiL+qfXS2jo2jEP9tQ==\"; guest_id=v1%3A156633470544492835; lang=en",
-    'Accept-Encoding': "gzip, deflate",
-    'Connection': "keep-alive",
-    'cache-control': "no-cache"
-}
 
+headeroauth = OAuth1(secrets.consumer_api_key, secrets.consumer_api_secret,
+                     secrets.access_token, secrets.access_token_secret,
+                     signature_type='auth_header')
+
+# return a list of tweet texts
 def getData(searchTerm):
     querystring = {"q": searchTerm}
 
-    response = requests.request("GET", twitterUrl, headers=twitterHeaders, params=querystring)
+    response = requests.get(twitterUrl, auth=headeroauth, params=querystring)
 
-    return response.text
+    resultArr = []
+    jsonObj = json.loads(response.text)
+    print(jsonObj)
+    for status in jsonObj["statuses"]:
+        resultArr.append(status["text"])
+
+    return resultArr
 
 def getInput():
-    pass
+    return input("Enter a term to search for, or \"stop\" to stop: ")
 
 def performAnalysis(data):
-    return 'bad'
-
-print(getData("google"))
+    print(data)
 
 # main function below
-#input = 'google'
-#while (input != 'stop'):
-#    output = performAnalysis(getData(input))
-#    input = getInput()
+searchTerm = None
+while (searchTerm != 'stop'):
+    searchTerm = getInput()
+    if (searchTerm != 'stop'):
+
+        performAnalysis(getData(searchTerm))
